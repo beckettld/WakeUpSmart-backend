@@ -41,3 +41,35 @@ const port = process.env.PORT || 4242;
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
+
+app.post('/create-setup-intent', async (req, res) => {
+    try {
+      const setupIntent = await stripe.setupIntents.create();
+      res.send({
+        clientSecret: setupIntent.client_secret,
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+});
+  
+app.post('/charge-user', async (req, res) => {
+const { amount, paymentMethodId } = req.body;
+
+try {
+    const paymentIntent = await stripe.paymentIntents.create({
+    amount: amount * 100, // Amount in cents
+    currency: 'usd',
+    payment_method: paymentMethodId,
+    confirm: true,
+    });
+
+    res.send({
+    success: true,
+    paymentIntent,
+    });
+} catch (error) {
+    res.status(500).json({ error: error.message });
+}
+});
+  
